@@ -18,31 +18,7 @@ jobs:
           script: |
             set -e
             OAUTH_TOKEN=$(echo "$CLAUDE_OAUTH_B64" | base64 -d)
-            su - claude -c "export CLAUDE_CODE_OAUTH_TOKEN='$OAUTH_TOKEN' && export NPM_CONFIG_PREFIX=/home/claude/.npm-global && export PATH=/home/claude/.npm-global/bin:\$PATH && export BIDDEED_BOT_TOKEN='$BIDDEED_BOT_TOKEN' && export BIDDEED_BOT_CHAT_ID='$BIDDEED_BOT_CHAT_ID' && export GH_PAT='$GH_PAT' && export SUPABASE_URL='$SUPABASE_URL' && export SUPABASE_KEY='$SUPABASE_KEY' && cd /home/claude/repos/everest-nexus && git pull origin main && claude -p 'MISSION: Nexus S4 — Dashboard. Read docs/EVEREST-NEXUS-SPEC.md and docs/EVEREST-NEXUS-PLAN.md.
-
-Build a Next.js 14 App Router dashboard for nexus.zonewise.ai. This deploys to Vercel Pro (project already created and linked).
-
-S4.1 SCAFFOLD: Initialize Next.js 14 app with: package.json (next, react, @supabase/supabase-js, tailwindcss, recharts, lucide-react), tailwind.config.js with brand colors (navy #1E3A5F, accent #F59E0B, bg #020617, p0 #EF4444, p1 #F59E0B, p2 #EAB308, p3 #6B7280, success #10B981), Inter font, app/layout.tsx with sidebar nav linking all 7 pages. Use house brand everywhere.
-
-S4.2 OVERVIEW PAGE (app/page.tsx): Health ring showing 6 layer scores, PriorityStrip (P0/P1/P2/P3 counts from nexus_tasks), ArielActionBox (owner=Ariel items), RecentActivity feed (last 20 events). All data from Supabase using NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY env vars.
-
-S4.3 TASKS PAGE (app/tasks/page.tsx): Full task table sortable by priority/project/owner/status. Inline action buttons (done/skip/bump). SLA countdown timers for P0/P1 items. Real-time updates via Supabase Realtime subscription on nexus_tasks.
-
-S4.4 WORKFLOWS PAGE (app/workflows/page.tsx): Grid of workflows grouped by repo. Color by status (green=passing, red=failing, gray=dead). Dead workflow panel. Cost estimator showing monthly GHA minutes.
-
-S4.5 REPOS PAGE (app/repos/page.tsx): Repo cards grouped by tier (CORE/ACTIVE/MONITORED). Each card shows name, last push, CI badge, health score bar, stale indicator. Consolidation panel showing family groups with merge/archive recommendations. Archive button that calls GitHub API.
-
-S4.6 DATA PAGE (app/data/page.tsx): Table grid grouped by project. Size bars. Orphan panel highlighting unused tables. Row counts.
-
-S4.7 SECRETS PAGE (app/secrets/page.tsx): Matrix showing repos x secrets. Expiry timeline. Shared secret indicators.
-
-S4.8 DOMAINS PAGE (app/domains/page.tsx): Domain list with SSL status, DNS provider, hosting. SSL expiry countdown.
-
-S4.9 Supabase client lib/supabase.ts using env vars. Realtime subscription helper.
-
-S4.10 Create next.config.js, tsconfig.json, .env.example with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
-
-Git prefix NEXUS:, push main (this triggers Vercel auto-deploy). Telegram notify with page count when done.' --dangerously-skip-permissions"
+            su - claude -c "export CLAUDE_CODE_OAUTH_TOKEN='$OAUTH_TOKEN' && export NPM_CONFIG_PREFIX=/home/claude/.npm-global && export PATH=/home/claude/.npm-global/bin:\$PATH && export BIDDEED_BOT_TOKEN='$BIDDEED_BOT_TOKEN' && export BIDDEED_BOT_CHAT_ID='$BIDDEED_BOT_CHAT_ID' && export GH_PAT='$GH_PAT' && export SUPABASE_URL='$SUPABASE_URL' && export SUPABASE_KEY='$SUPABASE_KEY' && cd /home/claude/repos/everest-nexus && git pull origin main && claude -p 'MISSION Nexus S4 Dashboard. Read docs/EVEREST-NEXUS-SPEC.md and docs/EVEREST-NEXUS-PLAN.md. Build Next.js 14 App Router dashboard. Initialize with package.json (next react supabase-js tailwindcss recharts lucide-react). Brand colors navy 1E3A5F accent F59E0B bg 020617 Inter font. Build 7 pages - overview with health ring and priority strip, tasks with realtime and inline actions, workflows grid with dead detection, repos with consolidation panel and archive button, data with orphan panel, secrets matrix, domains with SSL countdown. Supabase client in lib/supabase.ts. Push to main triggers Vercel deploy. Git prefix NEXUS and Telegram notify when done.' --dangerously-skip-permissions"
         env:
           CLAUDE_OAUTH_B64: ${{ secrets.CLAUDE_OAUTH_B64 }}
           GH_PAT: ${{ secrets.GH_PAT }}
