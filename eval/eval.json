@@ -1,0 +1,244 @@
+{
+  "version": "1.0",
+  "description": "Nexus S5 Eval — 25 assertions across 5 categories",
+  "categories": {
+    "migration": {
+      "weight": 20,
+      "description": "Supabase schema correctness"
+    },
+    "task_engine": {
+      "weight": 20,
+      "description": "Priority rules, SLA, and status logic"
+    },
+    "scanners": {
+      "weight": 20,
+      "description": "File existence and import correctness"
+    },
+    "ingest": {
+      "weight": 20,
+      "description": "CLI ingest + bot_nexus + digest modules"
+    },
+    "workflows": {
+      "weight": 20,
+      "description": "GHA workflow definitions"
+    }
+  },
+  "assertions": [
+    {
+      "id": "M01",
+      "category": "migration",
+      "description": "nexus_tasks table defined in migration SQL",
+      "type": "file_contains",
+      "file": "supabase/migrations/001_nexus_foundation.sql",
+      "contains": "nexus_tasks"
+    },
+    {
+      "id": "M02",
+      "category": "migration",
+      "description": "nexus_workflows table defined in migration SQL",
+      "type": "file_contains",
+      "file": "supabase/migrations/001_nexus_foundation.sql",
+      "contains": "nexus_workflows"
+    },
+    {
+      "id": "M03",
+      "category": "migration",
+      "description": "nexus_repos table defined in migration SQL",
+      "type": "file_contains",
+      "file": "supabase/migrations/001_nexus_foundation.sql",
+      "contains": "nexus_repos"
+    },
+    {
+      "id": "M04",
+      "category": "migration",
+      "description": "priority CHECK constraint in nexus_tasks",
+      "type": "file_contains",
+      "file": "supabase/migrations/001_nexus_foundation.sql",
+      "contains": "P0"
+    },
+    {
+      "id": "M05",
+      "category": "migration",
+      "description": "pg_cron morning digest job at 14:00 UTC",
+      "type": "file_contains",
+      "file": "supabase/migrations/002_cron_jobs.sql",
+      "contains": "14"
+    },
+    {
+      "id": "T01",
+      "category": "task_engine",
+      "description": "auto_assign_priority returns P0 for 'blocked' status",
+      "type": "python_logic",
+      "module": "task_engine",
+      "function": "auto_assign_priority",
+      "kwargs": {"description": "test task", "status": "blocked"},
+      "expected": "P0"
+    },
+    {
+      "id": "T02",
+      "category": "task_engine",
+      "description": "auto_assign_priority returns P0 for 'critical' keyword",
+      "type": "python_logic",
+      "module": "task_engine",
+      "function": "auto_assign_priority",
+      "kwargs": {"description": "critical production outage", "status": "queued"},
+      "expected": "P0"
+    },
+    {
+      "id": "T03",
+      "category": "task_engine",
+      "description": "auto_assign_priority returns P1 for owner=Ariel",
+      "type": "python_logic",
+      "module": "task_engine",
+      "function": "auto_assign_priority",
+      "kwargs": {"description": "review design doc", "status": "queued", "owner": "Ariel"},
+      "expected": "P1"
+    },
+    {
+      "id": "T04",
+      "category": "task_engine",
+      "description": "auto_assign_priority returns P1 for 'deploy' keyword (no P0 terms)",
+      "type": "python_logic",
+      "module": "task_engine",
+      "function": "auto_assign_priority",
+      "kwargs": {"description": "deploy to staging", "status": "queued"},
+      "expected": "P1"
+    },
+    {
+      "id": "T05",
+      "category": "task_engine",
+      "description": "compute_sla_deadline P0 = 2 hours ahead",
+      "type": "python_logic",
+      "module": "task_engine",
+      "function": "compute_sla_deadline",
+      "kwargs": {"priority": "P0"},
+      "expected_hours": 2
+    },
+    {
+      "id": "S01",
+      "category": "scanners",
+      "description": "scanners/task_engine.py exists",
+      "type": "file_exists",
+      "file": "scanners/task_engine.py"
+    },
+    {
+      "id": "S02",
+      "category": "scanners",
+      "description": "scanners/escalation.py exists",
+      "type": "file_exists",
+      "file": "scanners/escalation.py"
+    },
+    {
+      "id": "S03",
+      "category": "scanners",
+      "description": "scanners/notifier.py exists",
+      "type": "file_exists",
+      "file": "scanners/notifier.py"
+    },
+    {
+      "id": "S04",
+      "category": "scanners",
+      "description": "scanners/repo_scanner.py exists",
+      "type": "file_exists",
+      "file": "scanners/repo_scanner.py"
+    },
+    {
+      "id": "S05",
+      "category": "scanners",
+      "description": "scanners/workflow_scanner.py exists",
+      "type": "file_exists",
+      "file": "scanners/workflow_scanner.py"
+    },
+    {
+      "id": "I01",
+      "category": "ingest",
+      "description": "scanners/ingest.py exists",
+      "type": "file_exists",
+      "file": "scanners/ingest.py"
+    },
+    {
+      "id": "I02",
+      "category": "ingest",
+      "description": "ingest.py contains 'push_task' or 'cmd_task' function",
+      "type": "file_contains",
+      "file": "scanners/ingest.py",
+      "contains": "cmd_task"
+    },
+    {
+      "id": "I03",
+      "category": "ingest",
+      "description": "scanners/bot_nexus.py exists",
+      "type": "file_exists",
+      "file": "scanners/bot_nexus.py"
+    },
+    {
+      "id": "I04",
+      "category": "ingest",
+      "description": "bot_nexus.py handles /tasks command",
+      "type": "file_contains",
+      "file": "scanners/bot_nexus.py",
+      "contains": "/tasks"
+    },
+    {
+      "id": "I05",
+      "category": "ingest",
+      "description": "scanners/digest.py exists",
+      "type": "file_exists",
+      "file": "scanners/digest.py"
+    },
+    {
+      "id": "I06",
+      "category": "ingest",
+      "description": "digest.py builds morning digest",
+      "type": "file_contains",
+      "file": "scanners/digest.py",
+      "contains": "build_morning_digest"
+    },
+    {
+      "id": "I07",
+      "category": "ingest",
+      "description": "digest.py builds evening digest",
+      "type": "file_contains",
+      "file": "scanners/digest.py",
+      "contains": "build_evening_digest"
+    },
+    {
+      "id": "W01",
+      "category": "workflows",
+      "description": ".github/workflows/nexus-digest.yml exists",
+      "type": "file_exists",
+      "file": ".github/workflows/nexus-digest.yml"
+    },
+    {
+      "id": "W02",
+      "category": "workflows",
+      "description": "nexus-digest.yml has 9AM schedule (14:00 UTC)",
+      "type": "file_contains",
+      "file": ".github/workflows/nexus-digest.yml",
+      "contains": "0 14"
+    },
+    {
+      "id": "W03",
+      "category": "workflows",
+      "description": "nexus-digest.yml has 5PM schedule (22:00 UTC)",
+      "type": "file_contains",
+      "file": ".github/workflows/nexus-digest.yml",
+      "contains": "0 22"
+    },
+    {
+      "id": "W04",
+      "category": "workflows",
+      "description": ".github/workflows/nexus-eval-nightly.yml exists",
+      "type": "file_exists",
+      "file": ".github/workflows/nexus-eval-nightly.yml"
+    },
+    {
+      "id": "W05",
+      "category": "workflows",
+      "description": "nexus-eval-nightly.yml runs eval_runner.py",
+      "type": "file_contains",
+      "file": ".github/workflows/nexus-eval-nightly.yml",
+      "contains": "eval_runner.py"
+    }
+  ]
+}

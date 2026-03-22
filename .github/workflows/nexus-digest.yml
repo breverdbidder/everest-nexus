@@ -1,0 +1,66 @@
+name: Nexus Digest (9AM + 5PM EST)
+
+on:
+  schedule:
+    - cron: '0 14 * * *'   # 9AM EST / 10AM EDT
+    - cron: '0 22 * * *'   # 5PM EST / 6PM EDT
+  workflow_dispatch:
+    inputs:
+      digest_type:
+        description: 'Digest type'
+        required: false
+        default: 'auto'
+        type: choice
+        options: [auto, morning, evening, test]
+
+jobs:
+  digest:
+    name: Send Brain Digest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Determine digest type
+        id: dtype
+        run: |
+          INPUT="${{ github.event.inputs.digest_type }}"
+          if [ -n "$INPUT" ] && [ "$INPUT" != "auto" ]; then
+            echo "type=$INPUT" >> $GITHUB_OUTPUT
+          else
+            HOUR=$(date -u +%H)
+            if [ "$HOUR" -eq 14 ]; then
+              echo "type=morning" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" -eq 22 ]; then
+              echo "type=evening" >> $GITHUB_OUTPUT
+            else
+              echo "type=auto" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Send digest
+        env:
+          BIDDEED_BOT_TOKEN:   ${{ secrets.BIDDEED_BOT_TOKEN }}
+          BIDDEED_BOT_CHAT_ID: ${{ secrets.BIDDEED_BOT_CHAT_ID }}
+          SUPABASE_URL:        ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:        ${{ secrets.SUPABASE_KEY }}
+        run: |
+          cd scanners
+          python digest.py ${{ steps.dtype.outputs.type }}
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BIDDEED_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.BIDDEED_BOT_CHAT_ID }}" \
+            -d "text=⚠️ Nexus Digest FAILED (${{ steps.dtype.outputs.type }}) — ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            || true

@@ -1,0 +1,259 @@
+{
+  "timestamp": "2026-03-22T18:15:09.605292+00:00",
+  "score": {
+    "overall_pct": 100.0,
+    "pass": 27,
+    "total": 27,
+    "categories": {
+      "migration": {
+        "pass": 5,
+        "total": 5,
+        "pct": 100.0,
+        "weight": 20
+      },
+      "task_engine": {
+        "pass": 5,
+        "total": 5,
+        "pct": 100.0,
+        "weight": 20
+      },
+      "scanners": {
+        "pass": 5,
+        "total": 5,
+        "pct": 100.0,
+        "weight": 20
+      },
+      "ingest": {
+        "pass": 7,
+        "total": 7,
+        "pct": 100.0,
+        "weight": 20
+      },
+      "workflows": {
+        "pass": 5,
+        "total": 5,
+        "pct": 100.0,
+        "weight": 20
+      }
+    },
+    "pass_rate": "27/27"
+  },
+  "results": [
+    {
+      "id": "M01",
+      "category": "migration",
+      "description": "nexus_tasks table defined in migration SQL",
+      "passed": true,
+      "detail": "'nexus_tasks' found in supabase/migrations/001_nexus_foundation.sql \u2713",
+      "elapsed_ms": 0.1
+    },
+    {
+      "id": "M02",
+      "category": "migration",
+      "description": "nexus_workflows table defined in migration SQL",
+      "passed": true,
+      "detail": "'nexus_workflows' found in supabase/migrations/001_nexus_foundation.sql \u2713",
+      "elapsed_ms": 0.1
+    },
+    {
+      "id": "M03",
+      "category": "migration",
+      "description": "nexus_repos table defined in migration SQL",
+      "passed": true,
+      "detail": "'nexus_repos' found in supabase/migrations/001_nexus_foundation.sql \u2713",
+      "elapsed_ms": 0.1
+    },
+    {
+      "id": "M04",
+      "category": "migration",
+      "description": "priority CHECK constraint in nexus_tasks",
+      "passed": true,
+      "detail": "'P0' found in supabase/migrations/001_nexus_foundation.sql \u2713",
+      "elapsed_ms": 0.1
+    },
+    {
+      "id": "M05",
+      "category": "migration",
+      "description": "pg_cron morning digest job at 14:00 UTC",
+      "passed": true,
+      "detail": "'14' found in supabase/migrations/002_cron_jobs.sql \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "T01",
+      "category": "task_engine",
+      "description": "auto_assign_priority returns P0 for 'blocked' status",
+      "passed": true,
+      "detail": "auto_assign_priority({'description': 'test task', 'status': 'blocked'}) = 'P0' \u2713",
+      "elapsed_ms": 60.5
+    },
+    {
+      "id": "T02",
+      "category": "task_engine",
+      "description": "auto_assign_priority returns P0 for 'critical' keyword",
+      "passed": true,
+      "detail": "auto_assign_priority({'description': 'critical production outage', 'status': 'queued'}) = 'P0' \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "T03",
+      "category": "task_engine",
+      "description": "auto_assign_priority returns P1 for owner=Ariel",
+      "passed": true,
+      "detail": "auto_assign_priority({'description': 'review design doc', 'status': 'queued', 'owner': 'Ariel'}) = 'P1' \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "T04",
+      "category": "task_engine",
+      "description": "auto_assign_priority returns P1 for 'deploy' keyword (no P0 terms)",
+      "passed": true,
+      "detail": "auto_assign_priority({'description': 'deploy to staging', 'status': 'queued'}) = 'P1' \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "T05",
+      "category": "task_engine",
+      "description": "compute_sla_deadline P0 = 2 hours ahead",
+      "passed": true,
+      "detail": "compute_sla_deadline deadline \u2248 2h from now \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "S01",
+      "category": "scanners",
+      "description": "scanners/task_engine.py exists",
+      "passed": true,
+      "detail": "scanners/task_engine.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "S02",
+      "category": "scanners",
+      "description": "scanners/escalation.py exists",
+      "passed": true,
+      "detail": "scanners/escalation.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "S03",
+      "category": "scanners",
+      "description": "scanners/notifier.py exists",
+      "passed": true,
+      "detail": "scanners/notifier.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "S04",
+      "category": "scanners",
+      "description": "scanners/repo_scanner.py exists",
+      "passed": true,
+      "detail": "scanners/repo_scanner.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "S05",
+      "category": "scanners",
+      "description": "scanners/workflow_scanner.py exists",
+      "passed": true,
+      "detail": "scanners/workflow_scanner.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "I01",
+      "category": "ingest",
+      "description": "scanners/ingest.py exists",
+      "passed": true,
+      "detail": "scanners/ingest.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "I02",
+      "category": "ingest",
+      "description": "ingest.py contains 'push_task' or 'cmd_task' function",
+      "passed": true,
+      "detail": "'cmd_task' found in scanners/ingest.py \u2713",
+      "elapsed_ms": 0.1
+    },
+    {
+      "id": "I03",
+      "category": "ingest",
+      "description": "scanners/bot_nexus.py exists",
+      "passed": true,
+      "detail": "scanners/bot_nexus.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "I04",
+      "category": "ingest",
+      "description": "bot_nexus.py handles /tasks command",
+      "passed": true,
+      "detail": "'/tasks' found in scanners/bot_nexus.py \u2713",
+      "elapsed_ms": 0.1
+    },
+    {
+      "id": "I05",
+      "category": "ingest",
+      "description": "scanners/digest.py exists",
+      "passed": true,
+      "detail": "scanners/digest.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "I06",
+      "category": "ingest",
+      "description": "digest.py builds morning digest",
+      "passed": true,
+      "detail": "'build_morning_digest' found in scanners/digest.py \u2713",
+      "elapsed_ms": 0.1
+    },
+    {
+      "id": "I07",
+      "category": "ingest",
+      "description": "digest.py builds evening digest",
+      "passed": true,
+      "detail": "'build_evening_digest' found in scanners/digest.py \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "W01",
+      "category": "workflows",
+      "description": ".github/workflows/nexus-digest.yml exists",
+      "passed": true,
+      "detail": ".github/workflows/nexus-digest.yml \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "W02",
+      "category": "workflows",
+      "description": "nexus-digest.yml has 9AM schedule (14:00 UTC)",
+      "passed": true,
+      "detail": "'0 14' found in .github/workflows/nexus-digest.yml \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "W03",
+      "category": "workflows",
+      "description": "nexus-digest.yml has 5PM schedule (22:00 UTC)",
+      "passed": true,
+      "detail": "'0 22' found in .github/workflows/nexus-digest.yml \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "W04",
+      "category": "workflows",
+      "description": ".github/workflows/nexus-eval-nightly.yml exists",
+      "passed": true,
+      "detail": ".github/workflows/nexus-eval-nightly.yml \u2713",
+      "elapsed_ms": 0.0
+    },
+    {
+      "id": "W05",
+      "category": "workflows",
+      "description": "nexus-eval-nightly.yml runs eval_runner.py",
+      "passed": true,
+      "detail": "'eval_runner.py' found in .github/workflows/nexus-eval-nightly.yml \u2713",
+      "elapsed_ms": 0.0
+    }
+  ]
+}

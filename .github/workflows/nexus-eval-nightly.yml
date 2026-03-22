@@ -1,0 +1,83 @@
+name: Nexus Nightly Eval
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # 3AM UTC nightly
+  workflow_dispatch:
+    inputs:
+      category:
+        description: 'Run only a specific category (leave blank for all)'
+        required: false
+        default: ''
+      telegram:
+        description: 'Send results to Telegram'
+        required: false
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+
+jobs:
+  eval:
+    name: Run 25 Eval Assertions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run eval assertions
+        env:
+          BIDDEED_BOT_TOKEN:   ${{ secrets.BIDDEED_BOT_TOKEN }}
+          BIDDEED_BOT_CHAT_ID: ${{ secrets.BIDDEED_BOT_CHAT_ID }}
+          SUPABASE_URL:        ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:        ${{ secrets.SUPABASE_KEY }}
+        run: |
+          CATEGORY="${{ github.event.inputs.category }}"
+          TELEGRAM="${{ github.event.inputs.telegram }}"
+          TELEGRAM="${TELEGRAM:-true}"
+
+          ARGS="--output eval/results.json"
+          [ -n "$CATEGORY" ] && ARGS="$ARGS --category $CATEGORY"
+          [ "$TELEGRAM" = "true" ] && ARGS="$ARGS --telegram"
+
+          python eval/eval_runner.py $ARGS
+        continue-on-error: true  # Always upload results even on failure
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-${{ github.run_id }}
+          path: eval/results.json
+          retention-days: 30
+
+      - name: Post score to job summary
+        if: always()
+        run: |
+          if [ -f eval/results.json ]; then
+            SCORE=$(python -c "import json; d=json.load(open('eval/results.json')); print(d['score']['overall_pct'])")
+            PASS=$(python -c "import json; d=json.load(open('eval/results.json')); print(d['score']['pass'])")
+            TOTAL=$(python -c "import json; d=json.load(open('eval/results.json')); print(d['score']['total'])")
+            echo "## Nexus Eval Score: ${SCORE}% (${PASS}/${TOTAL})" >> $GITHUB_STEP_SUMMARY
+            if (( $(echo "$SCORE >= 80" | bc -l) )); then
+              echo "✅ **PASS** — above 80% threshold" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **FAIL** — below 80% threshold" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: Notify on eval failure
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BIDDEED_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.BIDDEED_BOT_CHAT_ID }}" \
+            -d "text=⚠️ Nexus Nightly Eval FAILED — ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            || true
