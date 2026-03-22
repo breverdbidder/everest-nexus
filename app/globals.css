@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #020617;
+  --navy: #1E3A5F;
+  --accent: #F59E0B;
+}
+
+body {
+  background-color: #020617;
+  color: #f1f5f9;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E3A5F;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #F59E0B;
+}
+
+.glass {
+  background: rgba(30, 58, 95, 0.15);
+  border: 1px solid rgba(30, 58, 95, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+.health-bar {
+  transition: width 0.5s ease;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulse-red {
+  animation: pulse-red 1.5s ease-in-out infinite;
+}
