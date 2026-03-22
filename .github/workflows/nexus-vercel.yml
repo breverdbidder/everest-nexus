@@ -1,0 +1,38 @@
+name: Nexus Vercel Setup
+on:
+  repository_dispatch:
+    types: [nexus-vercel]
+jobs:
+  vercel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create project and link domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -e
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://api.vercel.com/v9/projects/everest-nexus" \
+            -H "Authorization: Bearer $VERCEL_TOKEN")
+          echo "Project check: HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "Creating project..."
+            curl -s -X POST "https://api.vercel.com/v10/projects" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"name":"everest-nexus","framework":"nextjs","gitRepository":{"type":"github","repo":"breverdbidder/everest-nexus"}}' | \
+              python3 -c "import json,sys; d=json.load(sys.stdin); print(f'Project: {d.get(\"id\",d.get(\"error\",{}).get(\"message\",\"FAIL\"))}')"
+          else
+            echo "Project already exists"
+          fi
+          echo "Linking domain..."
+          curl -s -X POST "https://api.vercel.com/v10/projects/everest-nexus/domains" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"nexus.zonewise.ai"}' | \
+            python3 -c "import json,sys; d=json.load(sys.stdin); print(f'Domain result: {json.dumps(d,indent=2)[:300]}')"
+      - name: Notify
+        if: always()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BIDDEED_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.BIDDEED_BOT_CHAT_ID }}" -d "text=Nexus Vercel: ${{ job.status }}" || true
