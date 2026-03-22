@@ -184,3 +184,66 @@ def notify_s1_complete() -> bool:
         "Next: S2 — Repo + Data Intelligence"
     )
     return send_telegram(text)
+
+
+def notify_s3_complete(secret_summary: dict, domain_summary: dict) -> bool:
+    total_secrets = secret_summary.get("total_secrets", 0)
+    stale_count   = secret_summary.get("stale_count", 0)
+    dead_count    = secret_summary.get("dead_count", 0)
+    shared_count  = secret_summary.get("shared_count", 0)
+    repos_scanned = secret_summary.get("repos_scanned", 0)
+
+    domains_scanned  = domain_summary.get("domains_scanned", 0)
+    active_count     = domain_summary.get("active_count", 0)
+    ssl_ok_count     = domain_summary.get("ssl_ok_count", 0)
+    expiry_warnings  = domain_summary.get("expiry_warnings", 0)
+
+    expiry_line = (
+        f"⚠️ {expiry_warnings} SSL expiry warning(s)" if expiry_warnings
+        else "✅ All SSL certificates healthy"
+    )
+    dead_line = (
+        f"💀 {dead_count} known-dead secret(s) found (PAT1/2/3)" if dead_count
+        else "✅ No known-dead secrets"
+    )
+
+    text = (
+        "✅ <b>NEXUS S3 COMPLETE</b>\n\n"
+        "🔐 <b>Secret Intelligence</b>\n"
+        f"• {repos_scanned} repos scanned\n"
+        f"• {total_secrets} secrets inventoried\n"
+        f"• {shared_count} shared across repos\n"
+        f"• {stale_count} stale (>365 days)\n"
+        f"• {dead_line}\n\n"
+        "🌐 <b>Domain Intelligence</b>\n"
+        f"• {domains_scanned} domains checked\n"
+        f"• {active_count}/{domains_scanned} active\n"
+        f"• {ssl_ok_count}/{domains_scanned} SSL valid\n"
+        f"• {expiry_line}\n\n"
+        f"Dashboard: {NEXUS_URL}/secrets | {NEXUS_URL}/domains\n"
+        "Next: S4 — Dashboard UI"
+    )
+    return send_telegram(text)
+
+
+def notify_ssl_alert(domain: str, days_remaining: int, severity: str = "warning") -> bool:
+    if days_remaining <= 0:
+        text = (
+            f"🔴 <b>SSL EXPIRED</b>: {domain}\n"
+            f"Certificate has expired — users see security warnings!\n"
+            f"<b>Renew immediately.</b>\n"
+            f"Domains: {NEXUS_URL}/domains"
+        )
+    elif severity == "critical":
+        text = (
+            f"🔴 <b>SSL EXPIRING IN {days_remaining} DAYS</b>: {domain}\n"
+            f"Certificate expires very soon. Renew NOW.\n"
+            f"Domains: {NEXUS_URL}/domains"
+        )
+    else:
+        text = (
+            f"🟠 <b>SSL Expiry Warning</b>: {domain}\n"
+            f"Certificate expires in {days_remaining} days.\n"
+            f"Schedule renewal: {NEXUS_URL}/domains"
+        )
+    return send_telegram(text)
