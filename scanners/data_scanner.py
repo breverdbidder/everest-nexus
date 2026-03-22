@@ -122,20 +122,36 @@ def fetch_table_stats() -> list[dict]:
 
 def _fetch_tables_via_rest() -> list[dict]:
     """
-    Fallback: enumerate known tables by querying the REST API.
-    Uses HEAD requests to check existence + count query.
+    Fallback: enumerate all tables by checking the OpenAPI schema,
+    then querying each for row count.
     """
-    known_tables = [
-        # nexus_ tables
-        "nexus_tasks", "nexus_workflows", "nexus_repos", "nexus_tables",
-        "nexus_secrets", "nexus_domains", "nexus_notifications",
-        "nexus_chat_sessions", "nexus_insights",
-        # Other common Supabase tables
-        "users", "profiles", "sessions",
-    ]
+    # First: fetch table list from OpenAPI schema
+    all_tables: list[str] = []
+    try:
+        schema_url = f"{SUPABASE_URL}/rest/v1/"
+        r = requests.get(schema_url, headers=_sb_headers(), timeout=15)
+        if r.ok:
+            paths = list(r.json().get("paths", {}).keys())
+            # Filter to actual table paths (not RPC paths, no query params)
+            all_tables = [
+                p.lstrip("/") for p in paths
+                if not p.startswith("/rpc/") and "{" not in p
+            ]
+            logger.info(f"Discovered {len(all_tables)} tables from OpenAPI schema")
+    except Exception as e:
+        logger.warning(f"OpenAPI schema fetch failed: {e}")
+
+    # Fallback: hardcoded known tables
+    if not all_tables:
+        all_tables = [
+            "nexus_tasks", "nexus_workflows", "nexus_repos", "nexus_tables",
+            "nexus_secrets", "nexus_domains", "nexus_notifications",
+            "nexus_chat_sessions", "nexus_insights",
+            "users", "profiles", "sessions",
+        ]
 
     result = []
-    for table in known_tables:
+    for table in all_tables:
         try:
             url = f"{SUPABASE_URL}/rest/v1/{table}?select=count"
             r = requests.get(url, headers={

@@ -1,0 +1,289 @@
+{
+  "scanned_at": "2026-03-22T13:03:00Z",
+  "families": {
+    "zonewise-family": [
+      "zonewise",
+      "zonewise-web",
+      "zonewise-desktop",
+      "zonewise-landing",
+      "zonewise-agents",
+      "zonewise-agent-teams",
+      "zonewise-gtm",
+      "zonewise-loans",
+      "zonewise-scraper-v4",
+      "zonewise-modal"
+    ],
+    "biddeed-family": [
+      "biddeed-ai",
+      "biddeed-ai-ui",
+      "biddeed-landing",
+      "biddeed-conversational-ai",
+      "brevard-bidder-landing",
+      "biddeed-brain"
+    ],
+    "infra-family": [
+      "claude-code-telegram-control",
+      "claude-code-telegram-control-1",
+      "cliproxy-gateway",
+      "agents-command-center",
+      "everest-dispatch"
+    ],
+    "reventure-family": [
+      "reventure-clone-v2",
+      "reventure-clone",
+      "reventure-data-acquisition",
+      "reventure-agent"
+    ],
+    "coliving-family": [
+      "coliving-proforma-ai",
+      "coliving-zoom-recorder"
+    ],
+    "tax-family": [
+      "tax-optim-ai",
+      "tax-insurance-optimizer"
+    ],
+    "claude-family": [
+      "claude-skills-library",
+      "claude-code-hooks-multi-agent-observability",
+      "claude-ai-deployer",
+      "claude-code-hooks-mastery",
+      "claude-code-hack-analysis",
+      "claude-code-replit-deployment-analysis",
+      "claude-enforcement-protocols",
+      "claude-code-playgrounds-analysis",
+      "claude-superpowers-analysis"
+    ],
+    "ai-family": [
+      "ai-development-workflows",
+      "ai-engineer-automation",
+      "ai-document-extraction-guide",
+      "ai-tools-library",
+      "ai-underwriting",
+      "ai-advisory-board-system"
+    ],
+    "life-family": [
+      "life-os-dashboard",
+      "life-os",
+      "life-os-ai-skills",
+      "life-os-mobile"
+    ],
+    "625-family": [
+      "625-ocean-ave-maket-guide",
+      "625-ocean-street-showcase",
+      "625-ocean-street-3d-model"
+    ],
+    "auction-family": [
+      "auction-scraper-playwright",
+      "auction-com-reverse-engineering"
+    ],
+    "skillforge-family": [
+      "skillforge-business-plan",
+      "skillforge-craft-extraction",
+      "skillforge-competitive-intelligence",
+      "skillforge-marketing-strategy",
+      "skillforge-ai-backend",
+      "skillforge-ai",
+      "skillforge-documentation",
+      "skillforge-ai-web"
+    ],
+    "agentic-family": [
+      "agentic-ai-comprehensive-solutions",
+      "agentic-seller",
+      "agentic-ai-project-documentation",
+      "agentic-ai-solutions-overview",
+      "agentic-ai-mvp-roadmap",
+      "agentic-ai-security-website"
+    ],
+    "competitive-family": [
+      "competitive-intelligence",
+      "competitive-intelligence-framework"
+    ],
+    "michael-family": [
+      "michael-d1-pathway",
+      "michael-shapira-award"
+    ],
+    "brevard-family": [
+      "brevard-bidder-ai-skills",
+      "brevard-bidder-scraper"
+    ],
+    "zoning-family": [
+      "zoning-analyst",
+      "zoning-analyst-ai"
+    ],
+    "startup-family": [
+      "startup-validation-platform",
+      "startup-framework"
+    ]
+  },
+  "archive_candidates": [
+    "claude-code-hooks-multi-agent-observability",
+    "loanlens_ai",
+    "brevardbidderai",
+    "life-os-dashboard",
+    "shapira-life-os",
+    "life-os-ai-skills",
+    "tax-optim-ai",
+    "life-os-mobile",
+    "spt-site-plan-tech",
+    "ride-share-app",
+    "the-rebbe-and-me"
+  ],
+  "insights": [
+    {
+      "id": "1a95a705-2a37-42c7-bb03-110adc4388d7",
+      "insight_type": "consolidation",
+      "layer": "repos",
+      "title": "Consolidate zonewise-family (10 repos)",
+      "body": "Merge zonewise-agents + zonewise-agent-teams into cli-anything-biddeed. Archive zonewise-desktop + zonewise-gtm + zonewise-loans (inactive). Keep zonewise-web + zonewise + zonewise-landing.",
+      "priority": "P2",
+      "repo_name": null,
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.869879+00:00",
+      "updated_at": "2026-03-22T17:04:14.869896+00:00"
+    },
+    {
+      "id": "a2633365-0814-4b69-ab5a-822f84d2e395",
+      "insight_type": "consolidation",
+      "layer": "repos",
+      "title": "Consolidate biddeed-family (6 repos)",
+      "body": "Merge biddeed-ai + biddeed-ai-ui into monorepo. Archive biddeed-conversational-ai (superseded). Merge landing pages into one.",
+      "priority": "P2",
+      "repo_name": null,
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.869922+00:00",
+      "updated_at": "2026-03-22T17:04:14.869926+00:00"
+    },
+    {
+      "id": "baba536d-60cd-4a83-9519-aab778ac8813",
+      "insight_type": "consolidation",
+      "layer": "repos",
+      "title": "Consolidate infra-family (5 repos)",
+      "body": "Archive telegram-control-1 (duplicate). Merge agents-command-center into cli-anything.",
+      "priority": "P2",
+      "repo_name": null,
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.869941+00:00",
+      "updated_at": "2026-03-22T17:04:14.869945+00:00"
+    },
+    {
+      "id": "aa1b0b21-b512-4001-8db5-edd50054f98c",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: claude-code-hooks-multi-agent-observability (147 days stale)",
+      "body": "Repo 'claude-code-hooks-multi-agent-observability' has had no pushes in 147 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "claude-code-hooks-multi-agent-observability",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870045+00:00",
+      "updated_at": "2026-03-22T17:04:14.870049+00:00"
+    },
+    {
+      "id": "9f1ae8a9-de4f-467b-8348-b8be23c78905",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: loanlens_ai (127 days stale)",
+      "body": "Repo 'loanlens_ai' has had no pushes in 127 days (tier: monitored, health: 55). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "loanlens_ai",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870064+00:00",
+      "updated_at": "2026-03-22T17:04:14.870068+00:00"
+    },
+    {
+      "id": "1e509feb-b85c-431d-bf39-f2fea6733270",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: brevardbidderai (111 days stale)",
+      "body": "Repo 'brevardbidderai' has had no pushes in 111 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "brevardbidderai",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870080+00:00",
+      "updated_at": "2026-03-22T17:04:14.870083+00:00"
+    },
+    {
+      "id": "d3fa01a2-46fd-4f15-b425-a8f547b27580",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: life-os-dashboard (109 days stale)",
+      "body": "Repo 'life-os-dashboard' has had no pushes in 109 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "life-os-dashboard",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870094+00:00",
+      "updated_at": "2026-03-22T17:04:14.870097+00:00"
+    },
+    {
+      "id": "2499d2d6-55bd-4e09-9f0e-5ccc95af83c2",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: shapira-life-os (109 days stale)",
+      "body": "Repo 'shapira-life-os' has had no pushes in 109 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "shapira-life-os",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870109+00:00",
+      "updated_at": "2026-03-22T17:04:14.870112+00:00"
+    },
+    {
+      "id": "188638f6-89bf-4a8c-8ecb-df71e6fa1f9f",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: life-os-ai-skills (108 days stale)",
+      "body": "Repo 'life-os-ai-skills' has had no pushes in 108 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "life-os-ai-skills",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870132+00:00",
+      "updated_at": "2026-03-22T17:04:14.870135+00:00"
+    },
+    {
+      "id": "caac58ea-3b41-4532-a8f5-e1e13d4770b8",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: tax-optim-ai (104 days stale)",
+      "body": "Repo 'tax-optim-ai' has had no pushes in 104 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "tax-optim-ai",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870146+00:00",
+      "updated_at": "2026-03-22T17:04:14.870149+00:00"
+    },
+    {
+      "id": "d4d276d5-229c-4063-8465-9fc1926c67cb",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: life-os-mobile (103 days stale)",
+      "body": "Repo 'life-os-mobile' has had no pushes in 103 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "life-os-mobile",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870160+00:00",
+      "updated_at": "2026-03-22T17:04:14.870163+00:00"
+    },
+    {
+      "id": "c4a6e33e-c712-4c23-944f-72d2d313709e",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: spt-site-plan-tech (103 days stale)",
+      "body": "Repo 'spt-site-plan-tech' has had no pushes in 103 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "spt-site-plan-tech",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870174+00:00",
+      "updated_at": "2026-03-22T17:04:14.870177+00:00"
+    },
+    {
+      "id": "802f69fb-b7c4-4f79-a5d2-8df10324b109",
+      "insight_type": "archive_candidate",
+      "layer": "repos",
+      "title": "Archive candidate: ride-share-app (102 days stale)",
+      "body": "Repo 'ride-share-app' has had no pushes in 102 days (tier: monitored, health: 60). Consider archiving if not actively needed.",
+      "priority": "P3",
+      "repo_name": "ride-share-app",
+      "status": "open",
+      "created_at": "2026-03-22T17:04:14.870188+00:00",
+      "updated_at": "2026-03-22T17:04:14.870192+00:00"
+    }
+  ]
+}
