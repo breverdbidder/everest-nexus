@@ -1,0 +1,32 @@
+name: Nexus S2 Repo + Data
+on:
+  repository_dispatch:
+    types: [nexus-s2]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Claude Code on Hetzner
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HETZNER_IP }}
+          username: root
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          command_timeout: 80m
+          envs: CLAUDE_OAUTH_B64,GH_PAT,BIDDEED_BOT_TOKEN,BIDDEED_BOT_CHAT_ID,SUPABASE_URL,SUPABASE_KEY
+          script: |
+            set -e
+            OAUTH_TOKEN=$(echo "$CLAUDE_OAUTH_B64" | base64 -d)
+            su - claude -c "export CLAUDE_CODE_OAUTH_TOKEN='$OAUTH_TOKEN' && export NPM_CONFIG_PREFIX=/home/claude/.npm-global && export PATH=/home/claude/.npm-global/bin:\$PATH && export BIDDEED_BOT_TOKEN='$BIDDEED_BOT_TOKEN' && export BIDDEED_BOT_CHAT_ID='$BIDDEED_BOT_CHAT_ID' && export GH_PAT='$GH_PAT' && export SUPABASE_URL='$SUPABASE_URL' && export SUPABASE_KEY='$SUPABASE_KEY' && cd /home/claude/repos/everest-nexus && git pull origin main && claude -p 'MISSION: Nexus S2 — Repo Intelligence + Data Intelligence. Read docs/EVEREST-NEXUS-SPEC.md and docs/EVEREST-NEXUS-PLAN.md. S2.1 REPO SCANNER: Create scanners/repo_scanner.py — fetch all breverdbidder repos via GitHub API (paginate), classify tier (CORE/ACTIVE/MONITORED per spec), compute health_score (0-100 formula from spec: deductions for stale, CI fail, no description), scan CI status. Run scanners/seed_repos.py if not already run. Verify 50 repos in nexus_repos. S2.2 CONSOLIDATION ENGINE: Create scanners/consolidation.py — detect_families by name prefix (zonewise-family 9 repos, biddeed-family 5 repos, infra-family 4 repos), generate_recommendations writing to nexus_insights, archive_repo function that calls GitHub API PATCH archived=true. Seed initial recommendations per spec. S2.3 DATA SCANNER: Create scanners/data_scanner.py — query Supabase information_schema for all tables, compute sizes via pg_total_relation_size, detect orphans (0 rows + no FK refs + no recent inserts), detect missing RLS, assign project ownership by table prefix. Write results to nexus_tables. Generate insights for orphans and missing RLS. Git prefix NEXUS:, push main, Telegram notify.' --dangerously-skip-permissions"
+        env:
+          CLAUDE_OAUTH_B64: ${{ secrets.CLAUDE_OAUTH_B64 }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          BIDDEED_BOT_TOKEN: ${{ secrets.BIDDEED_BOT_TOKEN }}
+          BIDDEED_BOT_CHAT_ID: ${{ secrets.BIDDEED_BOT_CHAT_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      - name: Notify
+        if: always()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BIDDEED_BOT_TOKEN }}/sendMessage" -d "chat_id=${{ secrets.BIDDEED_BOT_CHAT_ID }}" -d "text=Nexus S2 Repo+Data: ${{ job.status }} - ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
