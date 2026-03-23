@@ -31,6 +31,7 @@ from task_engine import (
 )
 from notifier import send_telegram
 from escalation import check_p0_escalation
+from automation_health import format_automation_health_section
 
 logging.basicConfig(
     level=logging.INFO,
@@ -130,7 +131,9 @@ def build_morning_digest() -> str:
         f"• Repos: {repo_h}/{repo_t} healthy\n"
         f"• Workflows: {wf_pass}/{wf_total} passing\n\n"
 
-        f"🔗 {NEXUS_URL}"
+        + format_automation_health_section(since_hours=12) + "\n"
+
+        + f"🔗 {NEXUS_URL}"
     )
     return text[:4096]
 
@@ -181,7 +184,9 @@ def build_evening_digest() -> str:
         f"• Workflows: {wf_pass}/{wf_total} passing\n"
         f"• Stale items: {stale_cnt}\n\n"
 
-        f"🔗 {NEXUS_URL}"
+        + format_automation_health_section(since_hours=8) + "\n"
+
+        + f"🔗 {NEXUS_URL}"
     )
     return text[:4096]
 
