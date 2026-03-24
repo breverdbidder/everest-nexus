@@ -9,6 +9,7 @@ import uuid
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+from urllib.parse import quote as _urlq
 import requests
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,12 @@ def _headers() -> dict:
         "Content-Type":  "application/json",
         "Prefer":        "return=representation",
     }
+
+
+def _q(value) -> str:
+    """Sanitize a value for PostgREST URL filter interpolation.
+    Prevents injection via task_id, priority, or other user-controlled params."""
+    return _urlq(str(value), safe="")
 
 
 def _sb(method: str, path: str, **kwargs):
@@ -128,7 +135,7 @@ def update_status(task_id: str, status: str, **extra) -> dict:
     elif status == "dispatched":
         payload.setdefault("dispatched_at", now)
 
-    result = _sb("PATCH", f"{TASKS_TABLE}?task_id=eq.{task_id}", json=payload)
+    result = _sb("PATCH", f"{TASKS_TABLE}?task_id=eq.{_q(task_id)}", json=payload)
     return result[0] if isinstance(result, list) and result else {}
 
 
@@ -142,7 +149,7 @@ def bump_priority(task_id: str) -> dict:
     idx = order.index(current) if current in order else 1
     new_priority = order[min(idx + 1, 3)]
     sla = compute_sla_deadline(new_priority)
-    return _sb("PATCH", f"{TASKS_TABLE}?task_id=eq.{task_id}",
+    return _sb("PATCH", f"{TASKS_TABLE}?task_id=eq.{_q(task_id)}",
                json={"priority": new_priority, "sla_deadline": sla.isoformat(),
                      "auto_priority": False})[0]
 
@@ -156,14 +163,14 @@ def demote_priority(task_id: str) -> dict:
     current = task.get("priority", "P2")
     idx = order.index(current) if current in order else 2
     new_priority = order[max(idx - 1, 0)]
-    return _sb("PATCH", f"{TASKS_TABLE}?task_id=eq.{task_id}",
+    return _sb("PATCH", f"{TASKS_TABLE}?task_id=eq.{_q(task_id)}",
                json={"priority": new_priority, "auto_priority": False})[0]
 
 
 # ── Queries ────────────────────────────────────────────────────────────────
 
 def get_task(task_id: str) -> Optional[dict]:
-    results = _sb("GET", f"{TASKS_TABLE}?task_id=eq.{task_id}&limit=1")
+    results = _sb("GET", f"{TASKS_TABLE}?task_id=eq.{_q(task_id)}&limit=1")
     return results[0] if results else None
 
 
@@ -173,17 +180,17 @@ def get_active(limit: int = 50) -> list:
         f"{TASKS_TABLE}?"
         "status=not.in.(success,failed,cancelled,skipped,timeout)&"
         "order=priority.asc,created_at.asc&"
-        f"limit={limit}"
+        f"limit={int(limit)}"
     ) or []
 
 
 def get_by_priority(priority: str, limit: int = 20) -> list:
     return _sb("GET",
         f"{TASKS_TABLE}?"
-        f"priority=eq.{priority}&"
+        f"priority=eq.{_q(priority)}&"
         "status=not.in.(success,failed,cancelled,skipped,timeout)&"
         "order=created_at.asc&"
-        f"limit={limit}"
+        f"limit={int(limit)}"
     ) or []
 
 
@@ -192,10 +199,10 @@ def get_stale(limit: int = 30) -> list:
     now = datetime.now(timezone.utc).isoformat()
     return _sb("GET",
         f"{TASKS_TABLE}?"
-        f"sla_deadline=lt.{now}&"
+        f"sla_deadline=lt.{_q(now)}&"
         "status=not.in.(success,failed,cancelled,skipped,timeout)&"
         "order=priority.asc,sla_deadline.asc&"
-        f"limit={limit}"
+        f"limit={int(limit)}"
     ) or []
 
 
@@ -223,12 +230,12 @@ def get_digest_stats(since_hours: int = 12) -> dict:
 
     completed = _sb("GET",
         f"{TASKS_TABLE}?"
-        f"status=eq.success&completed_at=gt.{cutoff}&select=task_id"
+        f"status=eq.success&completed_at=gt.{_q(cutoff)}&select=task_id"
     ) or []
 
     created = _sb("GET",
         f"{TASKS_TABLE}?"
-        f"created_at=gt.{cutoff}&select=task_id"
+        f"created_at=gt.{_q(cutoff)}&select=task_id"
     ) or []
 
     blocked = get_blocked()
@@ -284,7 +291,7 @@ def recompute_priorities() -> int:
             triggered_by=t.get("triggered_by", ""),
         )
         if new_p != t.get("priority"):
-            _sb("PATCH", f"{TASKS_TABLE}?task_id=eq.{t['task_id']}",
+            _sb("PATCH", f"{TASKS_TABLE}?task_id=eq.{_q(t['task_id'])}",
                 json={"priority": new_p,
                       "sla_deadline": compute_sla_deadline(new_p).isoformat()})
             updated += 1
