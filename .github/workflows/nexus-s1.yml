@@ -1,6 +1,6 @@
 name: Nexus S1
-
 on:
+  workflow_dispatch: {}
   repository_dispatch:
     types: [nexus-s1]
 
@@ -11,6 +11,13 @@ jobs:
     steps:
       - name: Claude Code on Hetzner
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          CLAUDE_OAUTH_B64: ${{ secrets.CLAUDE_OAUTH_B64 }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          BIDDEED_BOT_TOKEN: ${{ secrets.BIDDEED_BOT_TOKEN }}
+          BIDDEED_BOT_CHAT_ID: ${{ secrets.BIDDEED_BOT_CHAT_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         with:
           host: ${{ secrets.HETZNER_IP }}
           username: root
@@ -19,15 +26,56 @@ jobs:
           envs: CLAUDE_OAUTH_B64,GH_PAT,BIDDEED_BOT_TOKEN,BIDDEED_BOT_CHAT_ID,SUPABASE_URL,SUPABASE_KEY
           script: |
             set -e
-            OAUTH_TOKEN=$(echo "$CLAUDE_OAUTH_B64" | base64 -d)
-            su - claude -c "export CLAUDE_CODE_OAUTH_TOKEN='$OAUTH_TOKEN' && export NPM_CONFIG_PREFIX=/home/claude/.npm-global && export PATH=/home/claude/.npm-global/bin:\$PATH && export BIDDEED_BOT_TOKEN='$BIDDEED_BOT_TOKEN' && export BIDDEED_BOT_CHAT_ID='$BIDDEED_BOT_CHAT_ID' && export GH_PAT='$GH_PAT' && export SUPABASE_URL='$SUPABASE_URL' && export SUPABASE_KEY='$SUPABASE_KEY' && mkdir -p /home/claude/repos && cd /home/claude/repos && (cd everest-nexus 2>/dev/null && git pull origin main || (git clone https://\${GH_PAT}@github.com/breverdbidder/everest-nexus.git && cd everest-nexus)) && claude -p 'Read docs/EVEREST-NEXUS-SPEC.md and docs/EVEREST-NEXUS-PLAN.md. Execute ALL S1 tasks: S1.1 Create 9 Supabase tables (nexus_tasks, nexus_workflows, nexus_repos, nexus_tables, nexus_secrets, nexus_domains, nexus_notifications, nexus_chat_sessions, nexus_insights) with all columns, indexes, RLS, and Realtime per spec. S1.2 Create task engine (scanners/task_engine.py, escalation.py, notifier.py) with P0 escalation 2hr repeat and 4hr accountability. S1.3 Create workflow scanner for all 50 breverdbidder repos. S1.4 Create Telegram command handlers. S1.5 Create pg_cron jobs. S1.6 Seed all repos into nexus_repos with correct tiers. Prefix NEXUS:, push main, Telegram notify when done.' --dangerously-skip-permissions"
-        env:
-          CLAUDE_OAUTH_B64: ${{ secrets.CLAUDE_OAUTH_B64 }}
-          GH_PAT: ${{ secrets.GH_PAT }}
-          BIDDEED_BOT_TOKEN: ${{ secrets.BIDDEED_BOT_TOKEN }}
-          BIDDEED_BOT_CHAT_ID: ${{ secrets.BIDDEED_BOT_CHAT_ID }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+            # --- DNS health check + fix ---
+            if ! host github.com >/dev/null 2>&1; then
+              echo "DNS broken — fixing resolv.conf"
+              cp /etc/resolv.conf /etc/resolv.conf.bak 2>/dev/null || true
+              echo -e "nameserver 8.8.8.8\nnameserver 1.1.1.1\nnameserver 8.8.4.4" > /etc/resolv.conf
+              sleep 2
+            fi
+            # Verify DNS works now
+            for i in 1 2 3; do
+              host github.com >/dev/null 2>&1 && break
+              echo "DNS attempt $i failed, retrying..."
+              sleep 5
+            done
+            host github.com >/dev/null 2>&1 || { echo "FATAL: DNS still broken after 3 retries"; exit 1; }
+
+            # --- Ensure claude user ---
+            id claude 2>/dev/null || useradd -m -s /bin/bash claude
+            mkdir -p /home/claude/.npm-global
+            chown -R claude:claude /home/claude
+
+            # --- Ensure claude CLI ---
+            npm install -g @anthropic-ai/claude-code@latest 2>&1 | tail -3
+
+            # --- Decode OAuth ---
+            echo "$CLAUDE_OAUTH_B64" | base64 -d > /tmp/claude-oauth-token
+            OAUTH_TOKEN=$(cat /tmp/claude-oauth-token)
+            rm -f /tmp/claude-oauth-token
+
+            # --- Clone/pull repo ---
+            mkdir -p /opt/biddeed
+            if [ -d /opt/biddeed/everest-nexus ]; then
+              cd /opt/biddeed/everest-nexus && git pull origin main 2>/dev/null || true
+            else
+              cd /opt/biddeed && git clone "https://${GH_PAT}@github.com/breverdbidder/everest-nexus.git"
+            fi
+            chown -R claude:claude /opt/biddeed
+
+            # --- Run Claude Code ---
+            su - claude -c "export CLAUDE_CODE_OAUTH_TOKEN='$OAUTH_TOKEN' \
+              && export NPM_CONFIG_PREFIX=/home/claude/.npm-global \
+              && export PATH=/home/claude/.npm-global/bin:\$PATH \
+              && export BIDDEED_BOT_TOKEN='$BIDDEED_BOT_TOKEN' \
+              && export BIDDEED_BOT_CHAT_ID='$BIDDEED_BOT_CHAT_ID' \
+              && export GH_PAT='$GH_PAT' \
+              && export SUPABASE_URL='$SUPABASE_URL' \
+              && export SUPABASE_KEY='$SUPABASE_KEY' \
+              && cd /opt/biddeed/everest-nexus \
+              && claude -p 'Read docs/EVEREST-NEXUS-SPEC.md and docs/EVEREST-NEXUS-PLAN.md. Execute ALL S1 tasks: S1.1 Create 9 Supabase tables (nexus_tasks, nexus_workflows, nexus_repos, nexus_tables, nexus_secrets, nexus_domains, nexus_notifications, nexus_chat_sessions, nexus_insights) via Supabase REST API using SUPABASE_URL and SUPABASE_KEY env vars. S1.2 Create task engine (scanners/task_engine.py, escalation.py, notifier.py) with P0 escalation 2hr repeat and 4hr accountability. S1.3 Create workflow scanner for all breverdbidder repos. S1.4 Create Telegram command handlers using BIDDEED_BOT_TOKEN and BIDDEED_BOT_CHAT_ID. S1.5 Document pg_cron jobs needed (requires Supabase dashboard). S1.6 Seed all repos into nexus_repos with correct tiers. Prefix NEXUS:, push main, Telegram notify when done.' --enable-auto-mode"
+
       - name: Notify
         if: always()
         run: |
