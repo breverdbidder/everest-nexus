@@ -1,8 +1,3 @@
--- ============================================================
--- DAILY CHECKPOINT SYSTEM
--- Two reports: 11:59 PM checkpoint + 6:00 AM action plan
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS daily_checkpoints (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     date DATE NOT NULL,
@@ -58,21 +53,18 @@ ALTER TABLE daily_checkpoints ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_action_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_scores ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS checkpoints_service ON daily_checkpoints FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS action_plans_service ON daily_action_plans FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY IF NOT EXISTS scores_service ON daily_scores FOR ALL TO service_role USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS checkpoints_service ON daily_checkpoints;
+DROP POLICY IF EXISTS action_plans_service ON daily_action_plans;
+DROP POLICY IF EXISTS scores_service ON daily_scores;
 
--- View: weekly trends
+CREATE POLICY checkpoints_service ON daily_checkpoints FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY action_plans_service ON daily_action_plans FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY scores_service ON daily_scores FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 CREATE OR REPLACE VIEW weekly_trends AS
 SELECT
-    date,
-    total_items,
-    completed,
-    blocked,
-    completion_rate,
-    top_domain,
-    worst_domain,
-    streak_days,
+    date, total_items, completed, blocked, completion_rate,
+    top_domain, worst_domain, streak_days,
     AVG(completion_rate) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) as rolling_7day_avg
 FROM daily_scores
 ORDER BY date DESC;
