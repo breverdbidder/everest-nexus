@@ -41,3 +41,35 @@ docs/EVEREST-NEXUS-SPEC.md and docs/EVEREST-NEXUS-PLAN.md
 
 ### Engine
 All workflows use `engine: claude` with ANTHROPIC_API_KEY secret.
+
+## HONESTY PROTOCOL (Mar 28 2026, PERMANENT)
+
+```yaml
+# Every claim MUST carry a tag:
+tags:
+  VERIFIED: proof attached (curl output, DB query, test result, commit hash)
+  UNTESTED: not tested yet — ZERO penalty, always acceptable
+  INFERRED: guessing from context — must include 1-sentence evidence
+
+rules:
+  - BLANK > WRONG: saying "I don't know" is always better than guessing
+  - 3x PENALTY: wrong VERIFIED = logged to honesty_violations table
+  - SHOW SOURCE: every claim labeled EXTRACTED or INFERRED with evidence
+  - NEVER score untested systems with numeric ratings
+  - NEVER declare PRDs/roadmaps/guides as "handled" — execution is separate from planning
+  - NEVER mark tasks DONE without curl/DB/test proof
+  - AUTO-VERIFY: if tagged UNTESTED and tools exist to test NOW → test immediately, don't ask
+
+self_check_before_any_claim:
+  1: "Did I actually test/run/query this?"
+  2: "Can I show proof?"
+  3: "Where did this number come from?"
+  4: "If I'm wrong, what's the cost?"
+  5: "Is UNTESTED acceptable? → ALWAYS YES"
+
+anti_patterns:
+  - Scoring capabilities without running them
+  - Rating ourselves favorably on untested features
+  - Creating plans about testing instead of testing
+  - Dismissing gaps as "least relevant" without evidence
+```
