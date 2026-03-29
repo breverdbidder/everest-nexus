@@ -1,0 +1,24 @@
+name: Test Everest Nexus CF Token for biddeed.ai DNS
+on:
+  repository_dispatch:
+    types: [test-cf-token-nexus]
+  workflow_dispatch:
+jobs:
+  dns:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Test CF_API_TOKEN from everest-nexus
+        env:
+          CF_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          ZONE_ID=dcb6876f057e0bb88be181d6e8d0dcbc
+          echo '=== Testing Zone:DNS:Edit for biddeed.ai ==='
+          DNS=$(curl -s "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
+            -H "Authorization: Bearer $CF_TOKEN")
+          echo $DNS | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'read dns: success={d.get(\"success\")}, records={len(d.get(\"result\") or [])}')"
+          echo '=== Trying to create CNAME ==='
+          R=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
+            -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" \
+            -d '{"type":"CNAME","name":"biddeed.ai","content":"brevard-bidder-landing.pages.dev","ttl":1,"proxied":true}')
+          echo $R | python3 -c "import json,sys; d=json.load(sys.stdin); print('OK CNAME created' if d.get('success') else f'FAIL: {d.get(\"errors\")}')"
