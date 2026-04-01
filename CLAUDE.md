@@ -73,3 +73,16 @@ anti_patterns:
   - Creating plans about testing instead of testing
   - Dismissing gaps as "least relevant" without evidence
 ```
+
+
+## SEARCH-FIRST MANDATE (PERMANENT — Apr 1 2026)
+
+BEFORE any architecture, design, or component work:
+1. Search GitHub for mature, tested repositories solving the same problem
+2. Run REPOEVAL: security + value + stability + integration + cost  
+3. ADOPT (score>=80) -> install and compose, build only the delta
+4. EVAL (60-79) -> test 1 week before committing
+5. REJECT (<40) -> build custom
+
+NEVER build from scratch what already exists tested and verified.
+Applies: UI (shadcn/ui), frameworks, pipelines, auth, payments, charts, maps.
