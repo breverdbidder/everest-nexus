@@ -1,0 +1,116 @@
+name: Deploy Blueprint Tracker
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for deploy'
+        required: false
+        default: 'Add Phase 1 / Calculator / Tech Stack tabs'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Discover token scope and locate blueprint-tracker
+        id: discover
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          echo "=== Token user ==="
+          USER=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v2/user")
+          echo "$USER" | python3 -m json.tool | head -20
+
+          echo ""
+          echo "=== Teams accessible by token ==="
+          TEAMS=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v2/teams?limit=50")
+          echo "$TEAMS" | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          for t in d.get('teams', []):
+              print(f\"  {t['id']}  {t['slug']:<50}  {t['name']}\")
+          "
+
+          echo ""
+          echo "=== Looking for 'blueprint-tracker' project ==="
+          FOUND_ID=""
+          FOUND_ORG=""
+
+          CODE=$(curl -sS -o /tmp/probe.json -w "%{http_code}" -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/blueprint-tracker")
+          if [ "$CODE" = "200" ]; then
+            FOUND_ID=$(python3 -c "import json; print(json.load(open('/tmp/probe.json'))['id'])")
+            FOUND_ORG=$(echo "$USER" | python3 -c "import json,sys; print(json.load(sys.stdin)['user']['id'])")
+            echo "  Found in personal scope: $FOUND_ID (org=$FOUND_ORG)"
+          fi
+
+          if [ -z "$FOUND_ID" ]; then
+            TEAM_IDS=$(echo "$TEAMS" | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          print(' '.join(t['id'] for t in d.get('teams', [])))
+          ")
+            for tid in $TEAM_IDS; do
+              CODE=$(curl -sS -o /tmp/probe.json -w "%{http_code}" -H "Authorization: Bearer $VERCEL_TOKEN" \
+                "https://api.vercel.com/v9/projects/blueprint-tracker?teamId=$tid")
+              if [ "$CODE" = "200" ]; then
+                FOUND_ID=$(python3 -c "import json; print(json.load(open('/tmp/probe.json'))['id'])")
+                FOUND_ORG="$tid"
+                echo "  Found in team $tid: $FOUND_ID"
+                break
+              fi
+            done
+          fi
+
+          if [ -z "$FOUND_ID" ]; then
+            echo "ERROR: blueprint-tracker not found in any scope this token can see."
+            exit 1
+          fi
+
+          echo "project_id=$FOUND_ID" >> "$GITHUB_OUTPUT"
+          echo "org_id=$FOUND_ORG" >> "$GITHUB_OUTPUT"
+
+      - name: Write .vercel/project.json
+        run: |
+          set -euo pipefail
+          cd blueprint-tracker
+          mkdir -p .vercel
+          cat > .vercel/project.json <<EOF
+          {"projectId":"${{ steps.discover.outputs.project_id }}","orgId":"${{ steps.discover.outputs.org_id }}"}
+          EOF
+          cat .vercel/project.json
+
+      - name: Deploy to production
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd blueprint-tracker
+          vercel deploy --prod --yes --token="$VERCEL_TOKEN" 2>&1 | tee /tmp/deploy.log
+          DEPLOY_URL=$(grep -oE 'https://[a-zA-Z0-9.-]+\.vercel\.app' /tmp/deploy.log | tail -1)
+          echo "DEPLOY_URL=$DEPLOY_URL"
+
+      - name: Verify production
+        run: |
+          set -euo pipefail
+          sleep 8
+          echo "=== Live URL: https://blueprint-tracker.vercel.app/ ==="
+          TABS=$(curl -sSL https://blueprint-tracker.vercel.app/ | grep -oE 'data-tab="[a-z0-9]+"' | sort -u)
+          echo "$TABS"
+          TAB_COUNT=$(echo "$TABS" | wc -l)
+          echo "Tab count: $TAB_COUNT (expected 12)"
+          echo ""
+          echo "External link health check:"
+          for url in https://www.perplexity.ai https://posthog.com https://supabase.com https://www.mixpanel.com https://vercel.com; do
+            CODE=$(curl -sS -o /dev/null -w "%{http_code}" -L --max-time 10 "$url" || echo "ERR")
+            echo "  $CODE  $url"
+          done
