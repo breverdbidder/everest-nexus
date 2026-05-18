@@ -1,0 +1,47 @@
+name: Probe Vercel Projects
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Search all projects for blueprint-tracker.vercel.app
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          TEAM="team_UEds2qBzyD9e7rOrX8aakj9K"
+          echo "=== Listing all projects on $TEAM ==="
+          curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects?teamId=$TEAM&limit=100" | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          for p in d.get('projects', []):
+              aliases = []
+              for t in p.get('targets', {}).values() if isinstance(p.get('targets'), dict) else []:
+                  if t:
+                      aliases.extend(t.get('alias', []))
+              alias_str = ','.join(aliases) if aliases else '-'
+              print(f\"  {p['id']:<30}  {p['name']:<40}  aliases={alias_str}\")
+          print(f\"Total projects: {len(d.get('projects', []))}\")
+          "
+          echo ""
+          echo "=== Searching for blueprint-tracker.vercel.app in domains/aliases ==="
+          curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects?teamId=$TEAM&limit=100" | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          target = 'blueprint-tracker'
+          for p in d.get('projects', []):
+              name = p['name']
+              if target in name.lower():
+                  print(f'MATCH (name): {p[\"id\"]} {name}')
+              latest = p.get('latestDeployments') or []
+              for ld in latest:
+                  alias = ld.get('alias') or []
+                  for a in alias:
+                      if target in a:
+                          print(f\"MATCH (alias): project={p['id']} ({name}) alias={a}\")
+          "
